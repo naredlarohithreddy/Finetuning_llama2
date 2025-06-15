@@ -54,6 +54,33 @@ We use a public, instruction-style dataset:
 
 LoRA (Low-Rank Adaptation):
 
+**LoRA (Low-Rank Adaptation)** freezes the original weight matrix \( W_0 \) and learns a low-rank update:
+
+$$
+\Delta W = \frac{\alpha}{r} AB
+$$
+
+Instead of updating a full d×d weight matrix, LoRA decomposes it into two smaller matrices:
+
+A∈R 
+d×r
+ 
+B∈R 
+r×d
+ 
+
+This reduces the number of trainable parameters from 
+\( d^2 \)
+  to 
+\( 2dr \)
+where 
+𝑟
+≪
+𝑑
+,making training significantly more efficient.
+The number of additional parameters depends on the hyperparameter 
+r, hence the name Low-Rank Adaptation.
+
 &emsp;Instead of fine-tuning all weights, we use LoRA to apply low-rank updates to specific transformer layers, saving memory and training time.
 
 ### LoRA recap in one line
@@ -72,7 +99,7 @@ that is **added** to the original weights during the forward pass.
 
 | Symbol                 | Default role                                                                           |
 | ---------------------- | -------------------------------------------------------------------------------------- |
-| **`r`**                | rank of the two small matrices $A\in\mathbb R^{d\times r},\;B\in\mathbb R^{r\times k}$ |
+| **`r`**                | rank of the two small matrices $A\in\mathbb R^{d\times r},\;B\in\mathbb R^{r\times d}$ |
 | **`α` (`lora_alpha`)** | *scaling factor* that controls the **magnitude** of the low-rank update                |
 
 In code the forward pass of a LoRA-ised linear layer looks roughly like:
@@ -154,8 +181,11 @@ The scaling happens *inside those projections* – not at the entire attention o
 🧪 Features
 
 &emsp;⚙️ Lightweight fine-tuning using LoRA adapters.
+
 &emsp;🧠 Instruction formatting with LLaMA 2 prompt schema.
+
 &emsp;📦 Integration with Hugging Face Transformers, Datasets, PEFT, and Accelerate.
+
 &emsp;✅ Easily extensible to support QLoRA or full parameter fine-tuning.
 
 
