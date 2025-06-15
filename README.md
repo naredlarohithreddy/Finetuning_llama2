@@ -138,6 +138,50 @@ The scaling happens *inside those projections* – not at the entire attention o
 
 > **Bottom line:** `lora_alpha` is just a scalar that rescales the learned low-rank update before it is *added* to the frozen weight’s output. Bigger `alpha` ⇒ bigger influence of LoRA on the final activations.
 
+# 🚀 LoRA & QLoRA — Everything You Need to Know
+
+*A snack-size guide for interviewers, new teammates, or your future self.*
+
+---
+
+## 1 LoRA (Low-Rank Adaptation)
+
+| What it solves | How it solves it |
+|----------------|------------------|
+| Fine-tuning huge ( ≫ 1 B ) models is **slow & memory-hungry**. | Freeze the giant weights **W₀** and learn a **tiny low-rank patch ΔW**. |
+
+### 1.1 Core math
+
+\[
+\boxed{ \displaystyle
+W \;=\; W_0 \;+\; \tfrac{\alpha}{r}\;A B
+}\]
+
+* `r` = small rank (8–64)  
+* `α` =`lora_alpha` (gain)  
+* `A∈ℝ^{d×r}` is **down-projector** (random init)  
+* `B∈ℝ^{r×k}` is **up-projector** (-zero init → ΔW = 0 at step 0)
+
+> **Why zeros for B?** Day-0 model behaves **exactly** like the base model.
+
+---
+
+### 1.2 Hyper-parameters in one table
+
+| Name | Default hint | Role |
+|------|--------------|------|
+| `r` | 8 – 32 | Rank of the update (controls # LoRA params). |
+| `lora_alpha` | often `2 × r` | Scales update: effective gain = `α/r`. |
+| `lora_dropout` | `0 – 0.1` | Drop tokens *only on LoRA branch* → regularises ΔW. |
+
+**Forward pass (pseudo-code)**  
+
+```python
+orig  = x @ W0.T                    # frozen path
+l_in  = dropout(x, p=lora_dropout)  # maybe zero rows
+lora  = (alpha / r) * (l_in @ A) @ B
+y     = orig + lora
+
 
 🧪 Features
 
