@@ -1,56 +1,67 @@
 # Finetuning_llama2
-This repository contains the setup, configuration, and training code for fine-tuning the Meta LLaMA 2 model using:  Parameter-Efficient Fine-Tuning (PEFT) with LoRA  bitsandbytes for 4-bit quantization
 
 🦙 Fine-Tuning LLaMA 2 with LoRA and Transformers
+
 This repository demonstrates the setup, configuration, and training code for fine-tuning Meta’s LLaMA 2 model using:
 
-✅ Parameter-Efficient Fine-Tuning (PEFT) with LoRA
+✅ Parameter-Efficient Fine-Tuning (PEFT) with LoRA 
+
 ✅ 4-bit quantization using bitsandbytes for memory-efficient training
+
 ✅ Supervised Fine-Tuning (SFT) for instruction alignment
 
 📌 Project Objective
+
 Large Language Models (LLMs) like LLaMA 2 are excellent at generating text but often need alignment to follow human instructions effectively.
 This project applies instruction tuning via Supervised Fine-Tuning (SFT) with LoRA, a practical alternative to more complex and resource-intensive methods like RLHF.
 
 📚 Background
+
 Why Fine-Tune?
 
 Fine-tuning improves a model’s ability to:
-  Follow instructions accurately
-  Align with user expectations
-  Specialize in domain-specific tasks
+
+&emsp;Follow instructions accurately
+
+&emsp;Align with user expectations
+
+&emsp;Specialize in domain-specific tasks
   
 Fine-Tuning Techniques:
 
-  Supervised Fine-Tuning (SFT): Trains on input-output pairs (instructions and ideal responses).
-  RLHF: Involves human-in-the-loop feedback with a reward model and reinforcement learning (e.g., PPO).
-  DPO: A newer, simpler alternative to RLHF that optimizes for preferences directly.
+&emsp;Supervised Fine-Tuning (SFT): Trains on input-output pairs (instructions and ideal responses).
+
+&emsp;RLHF: Involves human-in-the-loop feedback with a reward model and reinforcement learning (e.g., PPO).
+
+&emsp;DPO: A newer, simpler alternative to RLHF that optimizes for preferences directly.
 
 In this project, we use SFT, which is powerful when the model has seen similar data before and provides a solid baseline.
 
 
 🔧 Implementation Overview
+
 Prompt Template (LLaMA 2):
 
-  `<s>` [INST] <<SYS>>
-  System prompt
-  <</SYS>>
-  User prompt [/INST] Model response `</s>`
+&emsp;`<s>` [INST] <<SYS>>  System prompt <</SYS>>
+
+&emsp;User prompt [/INST] Model response `</s>`
 
 This format aligns with LLaMA 2's tokenizer and training format.
 
 We use a public, instruction-style dataset:
-  mlabonne/guanaco-llama2-1k
+
+&emsp;mlabonne/guanaco-llama2-1k
 
 LoRA (Low-Rank Adaptation):
-Instead of fine-tuning all weights, we use LoRA to apply low-rank updates to specific transformer layers, saving memory and training time.
+
+&emsp;Instead of fine-tuning all weights, we use LoRA to apply low-rank updates to specific transformer layers, saving memory and training time.
 
 ### LoRA recap in one line
 
 LoRA (Low-Rank Adaptation) freezes a large, pre-trained weight matrix **W₀** and learns a low-rank update
 
 $$
-\Delta W \;=\; \frac{\alpha}{r}\;A\,B
+\Delta W = \frac{\alpha}{r} \cdot A B
 $$
 
 that is **added** to the original weights during the forward pass.
@@ -74,7 +85,7 @@ def forward(x):
     return original + scaled                # add the adaptation
 ```
 
-So **yes**:
+So :
 
 1. The low-rank branch is computed.
 2. It is multiplied by **`alpha / r`**.
@@ -138,61 +149,20 @@ The scaling happens *inside those projections* – not at the entire attention o
 
 > **Bottom line:** `lora_alpha` is just a scalar that rescales the learned low-rank update before it is *added* to the frozen weight’s output. Bigger `alpha` ⇒ bigger influence of LoRA on the final activations.
 
-# 🚀 LoRA & QLoRA — Everything You Need to Know
-
-*A snack-size guide for interviewers, new teammates, or your future self.*
-
----
-
-## 1 LoRA (Low-Rank Adaptation)
-
-| What it solves | How it solves it |
-|----------------|------------------|
-| Fine-tuning huge ( ≫ 1 B ) models is **slow & memory-hungry**. | Freeze the giant weights **W₀** and learn a **tiny low-rank patch ΔW**. |
-
-### 1.1 Core math
-
-\[
-\boxed{ \displaystyle
-W \;=\; W_0 \;+\; \tfrac{\alpha}{r}\;A B
-}\]
-
-* `r` = small rank (8–64)  
-* `α` =`lora_alpha` (gain)  
-* `A∈ℝ^{d×r}` is **down-projector** (random init)  
-* `B∈ℝ^{r×k}` is **up-projector** (-zero init → ΔW = 0 at step 0)
-
-> **Why zeros for B?** Day-0 model behaves **exactly** like the base model.
-
----
-
-### 1.2 Hyper-parameters in one table
-
-| Name | Default hint | Role |
-|------|--------------|------|
-| `r` | 8 – 32 | Rank of the update (controls # LoRA params). |
-| `lora_alpha` | often `2 × r` | Scales update: effective gain = `α/r`. |
-| `lora_dropout` | `0 – 0.1` | Drop tokens *only on LoRA branch* → regularises ΔW. |
-
-**Forward pass (pseudo-code)**  
-
-```python
-orig  = x @ W0.T                    # frozen path
-l_in  = dropout(x, p=lora_dropout)  # maybe zero rows
-lora  = (alpha / r) * (l_in @ A) @ B
-y     = orig + lora
 
 
 🧪 Features
 
-  ⚙️ Lightweight fine-tuning using LoRA adapters.
-  🧠 Instruction formatting with LLaMA 2 prompt schema.
-  📦 Integration with Hugging Face Transformers, Datasets, PEFT, and Accelerate.
-  ✅ Easily extensible to support QLoRA or full parameter fine-tuning.
+&emsp;⚙️ Lightweight fine-tuning using LoRA adapters.
+&emsp;🧠 Instruction formatting with LLaMA 2 prompt schema.
+&emsp;📦 Integration with Hugging Face Transformers, Datasets, PEFT, and Accelerate.
+&emsp;✅ Easily extensible to support QLoRA or full parameter fine-tuning.
 
 
 📁 Files
-  fine_tuning_llama2.ipynb  – Main Jupyter notebook containing code, explanations, and experiments.
+
+&emsp;fine_tuning_llama2.ipynb  – Main Jupyter notebook containing code, explanations, and experiments.
 
 📈 Results
-  We demonstrate how SFT using LoRA performs well for aligning LLaMA 2 with instruction-following tasks using a custom dataset. Output quality and model alignment improve significantly post fine-tuning.
+
+&emsp;We demonstrate how SFT using LoRA performs well for aligning LLaMA 2 with instruction-following tasks using a custom dataset. Output quality and model alignment improve significantly post fine-tuning.
