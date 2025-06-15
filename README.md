@@ -32,10 +32,10 @@ In this project, we use SFT, which is powerful when the model has seen similar d
 🔧 Implementation Overview
 Prompt Template (LLaMA 2):
 
-  <s> [INST] <<SYS>>
+  `<s>` [INST] <<SYS>>
   System prompt
   <</SYS>>
-  User prompt [/INST] Model response </s>
+  User prompt [/INST] Model response `</s>`
 
 This format aligns with LLaMA 2's tokenizer and training format.
 
