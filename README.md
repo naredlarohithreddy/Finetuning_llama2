@@ -42,7 +42,7 @@ In this project, we use SFT, which is powerful when the model has seen similar d
 
 Prompt Template (LLaMA 2):
 
-&emsp;`<s>` [INST] <<SYS>>  System prompt <</SYS>>
+&emsp;`<s>` [INST] `<<SYS>>`  System prompt `<</SYS>>`
 
 &emsp;User prompt [/INST] Model response `</s>`
 
